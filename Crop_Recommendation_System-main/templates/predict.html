@@ -1,0 +1,55 @@
+<!--predict.html-->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crop Recommendation</title>
+    <link rel="styleshhet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    {% include 'navbar.html' %}
+
+<div class="container">
+    <h2>Enter Soil and Climate Details</h2>
+
+    <form method="POST">
+        {% for f in ["N","P","K","temperature","humidity","ph","rainfall"] %}
+        <input name="{{ f }}" placeholder="{{ f | title }}" required>
+        {% endfor %}
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if results %}
+        <h2>Crop Recommendations</h2>
+        
+        {% for r in results %}
+            <div class="crop-block" {% if r.rank == 1 %}primary{% else %}secondary{% endif %}>
+                <h3>
+                    {{ r.rank }}. {{ r.crop | title }}
+                    (Probability: {{ r.probability }})
+                </h3>
+
+                <h3>SHAP Explanation</h3>
+                <img src="/{{ r.shap_img }}?ts={{ ts }}" width="{% if r.rank == 1 %}80%{% else %}50%{% endif %}">
+
+                <h3>LIME Explanation</h3>
+                <img src="/{{ r.lime_img }}?ts={{ ts }}" width="{% if r.rank == 1 %}80%{% else %}50%{% endif %}">
+            </div>
+            <hr>
+        {% endfor %}
+
+        <h3>Global Feature Importance (Model Level)</h3>
+        <img src="/static/explain/global_shap.png" width="70%">
+
+        <h3>Crop-wise Feature Importance (Global SHAP)</h3>
+        <img src="/static/explain/global_shap_by_crop.png" width="90%">
+    {% endif %}
+
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</div>
+
+</body>
+</html>
